@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>X-MAGIC PRIORITY | Cổng Xác Thực</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Montserrat:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- FIREBASE SDK V8 ĐỒNG BỘ TRỰC TUYẾN TOÀN CẦU -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <style>
+      :root {
+        --bg-dark: #07090c;
+        --surface-card: rgba(18, 22, 29, 0.95);
+        --border-gold: rgba(212, 175, 55, 0.3);
+        --border-subtle: rgba(255, 255, 255, 0.08);
+        --gold-main: #d4af37;
+        --gold-light: #f6e7b0;
+        --emerald-green: #10b981;
+        --red-alert: #ef4444;
+        --text-main: #f1f5f9;
+        --text-dim: #94a3b8;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: "Montserrat", -apple-system, sans-serif;
+        letter-spacing: 0.02em;
+        -webkit-tap-highlight-color: transparent;
+      }
+      body {
+        background-color: #000000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 16px;
+      }
+      .auth-container {
+        width: 100%;
+        max-width: 420px;
+        background: var(--surface-card);
+        border: 1px solid var(--border-gold);
+        border-radius: 20px;
+        padding: 30px 24px;
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(15px);
+      }
+      .brand-header {
+        text-align: center;
+        margin-bottom: 24px;
+        user-select: none;
+      }
+      .brand-title {
+        font-family: "Cinzel", serif;
+        font-size: 22px;
+        letter-spacing: 2.5px;
+        background: linear-gradient(
+          135deg,
+          #f6e7b0 0%,
+          #d4af37 60%,
+          #aa820a 100%
+        );
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .brand-subtitle {
+        font-size: 11px;
+        color: var(--text-dim);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        margin-top: 4px;
+      }
+      .form-group {
+        margin-bottom: 14px;
+        text-align: left;
+      }
+      .form-group label {
+        display: block;
+        font-size: 11.5px;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+      .input-metal {
+        width: 100%;
+        height: 44px;
+        background: rgba(0, 0, 0, 0.45);
+        border: 1px solid var(--border-subtle);
+        border-radius: 10px;
+        padding: 0 14px;
+        color: #ffffff;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .input-metal:focus {
+        border-color: var(--gold-main);
+      }
+      .terms-clause-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin: 16px 0 18px 0;
+        text-align: left;
+      }
+      .terms-clause-row input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--gold-main);
+        cursor: pointer;
+        margin-top: 2px;
+        flex-shrink: 0;
+      }
+      .terms-clause-row label {
+        font-size: 12px;
+        color: var(--text-dim);
+        line-height: 1.5;
+        cursor: pointer;
+        user-select: none;
+      }
+      .btn-auth-submit {
+        width: 100%;
+        height: 48px;
+        background: linear-gradient(145deg, #262c38 0%, #151820 100%);
+        border: 1px solid var(--border-gold);
+        color: var(--gold-light);
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        transition: all 0.25s ease;
+        opacity: 0.35;
+        cursor: not-allowed;
+      }
+      .btn-auth-submit.unlocked {
+        opacity: 1;
+        cursor: pointer;
+        box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+        border-color: var(--gold-light);
+      }
+      .auth-switch-bar {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 12.5px;
+        color: var(--text-dim);
+      }
+      .btn-switch-link {
+        color: var(--gold-light);
+        font-weight: 600;
+        margin-left: 6px;
+        cursor: pointer;
+      }
+      .auth-alert-box {
+        color: var(--red-alert);
+        font-size: 12px;
+        margin-bottom: 12px;
+        text-align: center;
+        min-height: 16px;
+        font-weight: 600;
+      }
+      .hidden-field {
+        display: none;
+      }
+
+      .secret-admin-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.94);
+        backdrop-filter: blur(12px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        padding: 20px;
+        visibility: hidden;
+        opacity: 0;
+        transition: all 0.3s ease;
+      }
+      .secret-admin-modal.active {
+        visibility: visible;
+        opacity: 1;
+      }
+      .secret-card {
+        background: #0d0e12;
+        border: 1px solid var(--red-alert);
+        width: 100%;
+        max-width: 380px;
+        border-radius: 16px;
+        padding: 26px 22px;
+        text-align: center;
+        box-shadow: 0 0 40px rgba(239, 68, 68, 0.4);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="auth-container">
+      <div class="brand-header">
+        <div class="brand-title" id="secret-admin-trigger">
+          X-MAGIC PRIORITY
+        </div>
+        <div class="brand-subtitle" id="auth-mode-subtitle">
+          XÁC THỰC ĐẠI LÝ TIẾP THỊ
+        </div>
+      </div>
+
+      <div class="auth-alert-box" id="auth-alert-text"></div>
+
+      <form id="auth-main-form">
+        <div class="form-group">
+          <label>Tài khoản (Số điện thoại / Gmail)</label>
+          <input
+            type="text"
+            id="auth-username"
+            class="input-metal"
+            required
+            placeholder="09xxxxxxxx hoặc email@gmail.com"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Khóa bảo mật</label>
+          <input
+            type="password"
+            id="auth-password"
+            class="input-metal"
+            required
+            placeholder="Tối thiểu 6 ký tự"
+          />
+        </div>
+
+        <div id="register-expansion" class="hidden-field">
+          <div class="form-group">
+            <label>Xác nhận khóa bảo mật</label>
+            <input
+              type="password"
+              id="auth-confirm-password"
+              class="input-metal"
+              placeholder="Nhập lại mật khẩu"
+            />
+          </div>
+          <div class="form-group">
+            <label>Mã đại lý giới thiệu (Nếu có)</label>
+            <input
+              type="text"
+              id="auth-invite-code"
+              class="input-metal"
+              placeholder="Số điện thoại người mời"
+            />
+          </div>
+        </div>
+
+        <div class="terms-clause-row">
+          <input type="checkbox" id="auth-terms-checkbox" />
+          <label for="auth-terms-checkbox" id="terms-clause-label">
+            Ghi nhớ thiết bị & đồng ý tuân thủ Điều khoản dịch vụ.
+          </label>
+        </div>
+
+        <button
+          type="submit"
+          id="btn-auth-action"
+          class="btn-auth-submit"
+          disabled
+        >
+          ĐĂNG NHẬP HỆ THỐNG
+        </button>
+      </form>
+
+      <div class="auth-switch-bar">
+        <span id="switch-prompt-text">Chưa có mã định danh?</span>
+        <span id="btn-toggle-mode" class="btn-switch-link"
+          >Đăng ký đại lý mới</span
+        >
+      </div>
+    </div>
+
+    <!-- CỔNG ADMIN TỐI CAO: CHẠM 3 LẦN VÀO LOGO -->
+    <div id="secret-admin-gate" class="secret-admin-modal">
+      <div class="secret-card">
+        <div style="font-size: 32px; margin-bottom: 8px">🛡️</div>
+        <h3
+          style="
+            color: var(--red-alert);
+            font-size: 16px;
+            margin-bottom: 4px;
+            letter-spacing: 1px;
+          "
+        >
+          MASTER CONTROL GATE
+        </h3>
+        <p
+          style="font-size: 11.5px; color: var(--text-dim); margin-bottom: 16px"
+        >
+          Xác thực 3 yếu tố quyền Quản trị tối cao
+        </p>
+
+        <form id="secret-admin-form" style="text-align: left">
+          <div class="form-group">
+            <label style="font-size: 10.5px">Tài khoản Admin:</label>
+            <input
+              type="text"
+              id="sec-adm-user"
+              class="input-metal"
+              placeholder="admin"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label style="font-size: 10.5px">Mật khẩu Admin:</label>
+            <input
+              type="password"
+              id="sec-adm-pass"
+              class="input-metal"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label style="font-size: 10.5px">Mã PIN bảo mật:</label>
+            <input
+              type="password"
+              id="sec-adm-pin"
+              class="input-metal"
+              placeholder="••••••"
+              maxlength="6"
+              style="letter-spacing: 4px; text-align: center"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            class="btn-auth-submit unlocked"
+            style="
+              background: var(--red-alert);
+              color: white;
+              border: none;
+              margin-top: 6px;
+            "
+          >
+            MỞ TRỤ SỞ QUẢN TRỊ
+          </button>
+          <div
+            style="
+              margin-top: 14px;
+              font-size: 12px;
+              color: var(--text-dim);
+              text-align: center;
+              cursor: pointer;
+            "
+            onclick="closeSecretGate()"
+          >
+            Đóng cửa sổ
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // CẤU HÌNH FIREBASE REALTIME CỦA BẠN
+      const firebaseConfig = {
+        apiKey: "AIzaSyBWlIuTCVi-i6BXl_UNRRRHgJ3yMEU0Djo",
+        authDomain: "xmagic-2b4ff.firebaseapp.com",
+        databaseURL: "https://xmagic-2b4ff-default-rtdb.firebaseio.com",
+        projectId: "xmagic-2b4ff",
+        storageBucket: "xmagic-2b4ff.firebasestorage.app",
+        messagingSenderId: "147650737985",
+        appId: "1:147650737985:web:25b75e2cb9e02eb16053c0",
+      };
+
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      const db = firebase.database();
+
+      let isLoginMode = true;
+      let secretClicks = 0;
+      let secretTimer = null;
+
+      // CHẠM 3 LẦN VÀO TIÊU ĐỀ MỞ CỔNG ADMIN
+      document
+        .getElementById("secret-admin-trigger")
+        .addEventListener("click", () => {
+          secretClicks++;
+          clearTimeout(secretTimer);
+          secretTimer = setTimeout(() => {
+            secretClicks = 0;
+          }, 800);
+
+          if (secretClicks >= 3) {
+            secretClicks = 0;
+            document
+              .getElementById("secret-admin-gate")
+              .classList.add("active");
+            document.getElementById("sec-adm-user").focus();
+          }
+        });
+
+      function closeSecretGate() {
+        document.getElementById("secret-admin-gate").classList.remove("active");
+        document.getElementById("secret-admin-form").reset();
+      }
+
+      // XÁC THỰC ADMIN
+      document
+        .getElementById("secret-admin-form")
+        .addEventListener("submit", (e) => {
+          e.preventDefault();
+          const u = document.getElementById("sec-adm-user").value.trim();
+          const p = document.getElementById("sec-adm-pass").value.trim();
+          const pin = document.getElementById("sec-adm-pin").value.trim();
+
+          if (u === "admin" && p === "admin8888" && pin === "888888") {
+            localStorage.setItem("xmagic_admin_authorized", "true");
+            window.location.replace("./admin.html");
+          } else {
+            alert("Thông tin quản trị viên hoặc mã PIN không chính xác!");
+          }
+        });
+
+      document.addEventListener("DOMContentLoaded", () => {
+        if (localStorage.getItem("xmagic_user")) {
+          window.location.replace("./index.html");
+          return;
+        }
+
+        const termsCheckbox = document.getElementById("auth-terms-checkbox");
+        const submitBtn = document.getElementById("btn-auth-action");
+        const registerExpansion = document.getElementById("register-expansion");
+        const switchPrompt = document.getElementById("switch-prompt-text");
+        const btnToggle = document.getElementById("btn-toggle-mode");
+        const alertText = document.getElementById("auth-alert-text");
+
+        const savedAccount = localStorage.getItem("xmagic_remembered_account");
+        if (savedAccount) {
+          document.getElementById("auth-username").value = savedAccount;
+          termsCheckbox.checked = true;
+          submitBtn.disabled = false;
+          submitBtn.classList.add("unlocked");
+        }
+
+        termsCheckbox.addEventListener("change", function () {
+          submitBtn.disabled = !this.checked;
+          submitBtn.classList.toggle("unlocked", this.checked);
+        });
+
+        btnToggle.addEventListener("click", () => {
+          isLoginMode = !isLoginMode;
+          alertText.textContent = "";
+          termsCheckbox.checked = false;
+          submitBtn.disabled = true;
+          submitBtn.classList.remove("unlocked");
+
+          if (isLoginMode) {
+            submitBtn.textContent = "ĐĂNG NHẬP HỆ THỐNG";
+            switchPrompt.textContent = "Chưa có mã định danh?";
+            btnToggle.textContent = "Đăng ký đại lý mới";
+            registerExpansion.classList.add("hidden-field");
+          } else {
+            submitBtn.textContent = "XÁC NHẬN ĐĂNG KÝ";
+            switchPrompt.textContent = "Đã có tài khoản?";
+            btnToggle.textContent = "Đăng nhập ngay";
+            registerExpansion.classList.remove("hidden-field");
+          }
+        });
+
+        document
+          .getElementById("auth-main-form")
+          .addEventListener("submit", (e) => {
+            e.preventDefault();
+            alertText.textContent = "Đang hoàn thành...";
+
+            const username = document
+              .getElementById("auth-username")
+              .value.trim();
+            const password = document
+              .getElementById("auth-password")
+              .value.trim();
+            // Khóa an toàn cho Firebase (thay dấu chấm bằng dấu phẩy nếu là email)
+            const safeKey = username.replace(/\./g, "_");
+
+            if (isLoginMode) {
+              // ĐĂNG NHẬP ONLINE TỪ FIREBASE
+              db.ref("users/" + safeKey)
+                .once("value")
+                .then((snapshot) => {
+                  const userData = snapshot.val();
+                  if (userData && userData.password === password) {
+                    if (userData.status === "blocked") {
+                      alertText.textContent =
+                        "Tài khoản của bạn đã bị khóa bởi Quản trị viên!";
+                      return;
+                    }
+                    localStorage.setItem(
+                      "xmagic_user",
+                      JSON.stringify(userData)
+                    );
+                    localStorage.setItem("xmagic_remembered_account", username);
+                    window.location.replace("./index.html");
+                  } else {
+                    alertText.textContent =
+                      "Tài khoản hoặc khóa bảo mật không chính xác!";
+                  }
+                })
+                .catch(() => {
+                  alertText.textContent = "Lỗi kết nối máy chủ Firebase!";
+                });
+            } else {
+              // ĐĂNG KÝ MỚI ONLINE LÊN FIREBASE
+              const confirmPass = document
+                .getElementById("auth-confirm-password")
+                .value.trim();
+              const inviteCode = document
+                .getElementById("auth-invite-code")
+                .value.trim();
+
+              const isPhone = /^[0-9]{10}$/.test(username);
+              const isGmail = /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(username);
+
+              if (!isPhone && !isGmail) {
+                alertText.textContent =
+                  "Tài khoản phải là SĐT đủ 10 số hoặc Gmail (@gmail.com)!";
+                return;
+              }
+              if (password.length < 6) {
+                alertText.textContent = "Khóa bảo mật phải từ 6 ký tự trở lên!";
+                return;
+              }
+              if (password !== confirmPass) {
+                alertText.textContent =
+                  "Khóa bảo mật xác nhận không trùng khớp!";
+                return;
+              }
+
+              db.ref("users/" + safeKey)
+                .once("value")
+                .then((snapshot) => {
+                  if (snapshot.exists()) {
+                    alertText.textContent =
+                      "Tài khoản này đã tồn tại trên hệ thống đám mây!";
+                    return;
+                  }
+
+                  // Xử lý thưởng hoa hồng người mời trực tuyến
+                  if (inviteCode && inviteCode !== username) {
+                    const safeRefKey = inviteCode.replace(/\./g, "_");
+                    db.ref("users/" + safeRefKey)
+                      .once("value")
+                      .then((refSnap) => {
+                        if (refSnap.exists()) {
+                          const curBal = refSnap.val().balance || 0;
+                          db.ref("users/" + safeRefKey + "/balance").set(
+                            curBal + 20000
+                          );
+                        }
+                      });
+                  }
+
+                  const newAccount = {
+                    fullname: "",
+                    gender: "",
+                    username: username,
+                    safeKey: safeKey,
+                    password: password,
+                    balance: 0,
+                    vipLevel: "PRIORITY VIP 1",
+                    referredBy: inviteCode || "Không có",
+                    status: "active",
+                    shift: 1,
+                    count: 0,
+                    taskDate: new Date().toLocaleDateString("vi-VN"),
+                    termsAccepted: true,
+                    termsAcceptedAt:
+                      new Date().toLocaleTimeString("vi-VN") +
+                      " - " +
+                      new Date().toLocaleDateString("vi-VN"),
+                  };
+
+                  db.ref("users/" + safeKey)
+                    .set(newAccount)
+                    .then(() => {
+                      localStorage.setItem(
+                        "xmagic_user",
+                        JSON.stringify(newAccount)
+                      );
+                      localStorage.setItem(
+                        "xmagic_remembered_account",
+                        username
+                      );
+                      window.location.replace("./index.html");
+                    });
+                })
+                .catch(() => {
+                  alertText.textContent = "Không thể ghi dữ liệu lên Firebase!";
+                });
+            }
+          });
+      });
+    </script>
+  </body>
+</html>
